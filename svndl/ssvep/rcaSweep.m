@@ -1,15 +1,17 @@
-function [rcaData,W,A,noiseData,comparisonData,comparisonNoiseData,rcaSettings]=rcaSweep(pathnames,binsToUse,freqsToUse,nReg,nComp,chanToCompare,show)
+function [rcaData,W,A,noiseData,comparisonData,comparisonNoiseData,rcaSettings]=rcaSweep(pathnames,binsToUse,freqsToUse,condsToUse,nReg,nComp,dataType,chanToCompare,show)
 % perform RCA on sweep SSVEP data exported to RLS or DFT format
 %
-% [rcaData,W,A,noiseData,compareData,compareNoiseData,freqIndices,binIndices]=RCASWEEP(PATHNAMES,[BINSTOUSE],[FREQSTOUSE],[NREG],[NCOMP],[COMPARECHAN],[SHOW])
+% [rcaData,W,A,noiseData,compareData,compareNoiseData,freqIndices,binIndices]=RCASWEEP(PATHNAMES,[BINSTOUSE],[FREQSTOUSE],[CONDSTOUSE],[NREG],[NCOMP],[DATATYPE],[COMPARECHAN],[SHOW])
 %
 % INPUTS:
 % pathnames (required): cell vector of string directory names housins DFT_c00x.txt or RLS_c00x.txt exports
 %   for example,  pathnames={'/Volumes/Denali_4D2/rca/s001/','/Volumes/Denali_4D2/rca/s002/','/Volumes/Denali_4D2/rca/s003/'}
 % binsToUse: vector of bin indices to include in RCA (defaults to bin 0 or average across bins)
 % freqsToUse: vector of frequency indices to include in RCA (defaults to 1 or first harmonic ?)
+% condsToUse: vector of conditions to use
 % nReg: RCA regularization parameter (defaults to 9)
 % nComp: number of RCs to retain (defaults to 3)
+% dataType: can be 'DFT' or 'RLS'
 % compareChan: comparison channel index between 1 and the total number
 %   of channels in the specified dataset
 % show: 1 to see a figure of sweep amplitudes for each harmonic and component (defaults to 1), 0 to not display
@@ -29,16 +31,16 @@ function [rcaData,W,A,noiseData,comparisonData,comparisonNoiseData,rcaSettings]=
 % matrix containing the real and imaginary components of each RC.
 %
 % Jacek P. Dmochowski, 2015, report bugs to dmochowski@gmail.com
-% Edited by HEG 07/20/2015
+% Edited by HEG 07/2015
 
-
-if nargin<7, show=1; end
-if nargin<6, 
+if nargin<8, show=1; end
+if nargin<7, 
     computeComparison=false; 
     chanToCompare=NaN;
 elseif ~isempty(chanToCompare)
     computeComparison=true; 
 end
+if nargin<6, dataType = 'RLS'; end
 if nargin<5, nComp=3; end
 if nargin<4, nReg=9; end
 if nargin<3, freqsToUse=1; end
@@ -53,6 +55,9 @@ if ~iscell(pathnames)
         error('unable to parse pathnames: check that it is a cell array of strings');
     end
 end
+if isempty(pathnames)
+    error('Variable pathnames is empty.');
+end
 %% read in signal and noise data
 nSubjects=numel(pathnames);
 sensorData={};
@@ -62,7 +67,7 @@ freqIndices=cell(nSubjects,1);
 binIndices=cell(nSubjects,1);
 fprintf('Reading in sensor data from provided path names...\n')
 for s=1:nSubjects
-    [signalData,indF,indB,noise1,noise2]=textExportToRca(pathnames{s},binsToUse,freqsToUse);
+    [signalData,indF,indB,noise1,noise2,freqLabels,binLevels]=textExportToRca(pathnames{s},binsToUse,freqsToUse,[],dataType,condsToUse);
     freqIndices{s}=indF;
     binIndices{s}=indB;
     sensorData(:,s)=signalData;
@@ -107,8 +112,12 @@ rcaSettings.freqIndices = freqIndices;
 rcaSettings.binIndices = binIndices;
 rcaSettings.binsToUse = binsToUse;
 rcaSettings.freqsToUse = freqsToUse;
+rcaSettings.condsToUse = condsToUse;
 rcaSettings.nReg = nReg;
 rcaSettings.nComp = nComp;
 rcaSettings.chanToCompare = chanToCompare;
+rcaSettings.freqLabels = freqLabels; 
+rcaSettings.binLevels = binLevels;
+rcaSettings.dataType = dataType;
 
 %% ### add functionality to plot if show==true (after plotting functions fixed up?)
