@@ -34,7 +34,7 @@ fprintf('Selected %d subjects and %d conditions for training... \n',nSubjects,nC
 sumXX=zeros(nCond,nSubjects,nElectrodes,nElectrodes);sumYY=zeros(nCond,nSubjects,nElectrodes,nElectrodes);sumXY=zeros(nCond,nSubjects,nElectrodes,nElectrodes);
 nPointsInXX=zeros(nCond,nSubjects,nElectrodes,nElectrodes);nPointsInYY=zeros(nCond,nSubjects,nElectrodes,nElectrodes);nPointsInXY=zeros(nCond,nSubjects,nElectrodes,nElectrodes);
 
-matlabpool
+parpool; % should work for all recent versions of Matlab, including R2015*
 
 for cond=1:nCond
     for subj=1:nSubjects
@@ -106,8 +106,7 @@ end
 sumXX=squeeze(sumXX); sumYY=squeeze(sumYY); sumXY=squeeze(sumXY);
 nPointsInXX=squeeze(nPointsInXX); nPointsInYY=squeeze(nPointsInYY);  nPointsInXY=squeeze(nPointsInXY);
 
-matlabpool close
-
+delete(gcp); %closes the parpool
 
 
 
