@@ -51,10 +51,12 @@ for f=1:nFreqs
             hold on
             plot(noiseLevsCompare(:,f,1),'rs');
             set(gca,'XTickLabel',round(rcaSettings.binLevels([1 5 end])*100)./100); % assumes Matlab puts 3 ticks on x-axis ###
-            if useSpecialSettings
-                title(plotSettings.comparisonName)
-            else
-                title('Comparison Chan.')
+            if f==1
+                if useSpecialSettings
+                    title(plotSettings.comparisonName)
+                else
+                    title('Comparison Chan.')
+                end
             end
         end
         

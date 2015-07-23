@@ -67,7 +67,13 @@ freqIndices=cell(nSubjects,1);
 binIndices=cell(nSubjects,1);
 fprintf('Reading in sensor data from provided path names...\n')
 for s=1:nSubjects
-    [signalData,indF,indB,noise1,noise2,freqLabels,binLevels]=textExportToRca(pathnames{s},binsToUse,freqsToUse,[],dataType,condsToUse);
+    sourceDataFileName = sprintf('%s/sourceData.mat',pathnames{s});
+    if isempty(dir(sourceDataFileName))
+        [signalData,indF,indB,noise1,noise2,freqLabels,binLevels]=textExportToRca(pathnames{s},binsToUse,freqsToUse,[],dataType,condsToUse);
+        save(sourceDataFileName,'signalData','indF','indB','noise1','noise2','freqLabels','binLevels');
+    else
+        load(sourceDataFileName);
+    end
     freqIndices{s}=indF;
     binIndices{s}=indB;
     sensorData(:,s)=signalData;

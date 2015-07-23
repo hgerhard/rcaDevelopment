@@ -26,26 +26,49 @@ if plotComparison
     snrComparison = computeSnr(avgCompData,avgCompNoise1Data,avgCompNoise2Data,poolOverBins);
 end
 
-for rc=1:rcaSettings.nComp
+xticks = round(rcaSettings.binLevels*100)./100;
+if plotComparison
+    % plot SNR of RC1 and comparison channel, using noise estimates pooled over all bins
+    rc=1;
     figure;
     set(gca,'Color','w');
     for f=1:nFreqs
-        subplot(nFreqs,1,f); hold on
+        subplot(1,nFreqs,f); hold on % ### won't work if >3 RCs
         plot(snrMain(:,f,rc),'-ok','MarkerFaceColor','k');
         dataLabels = sprintf('RC%d',rc);
-        if plotComparison
-            plot(snrComparison(:,f,1),'-or','MarkerFaceColor','r'); 
-            if useSpecialSettings
-                dataLabels = {dataLabels,plotSettings.comparisonName};
-            else
-                dataLabels = {dataLabels,'Comparison'};
-            end
+        plot(snrComparison(:,f,1),'-or','MarkerFaceColor','r');
+        if useSpecialSettings
+            dataLabels = {dataLabels,plotSettings.comparisonName};
+        else
+            dataLabels = {dataLabels,'Comparison'};
         end
         title(rcaSettings.freqLabels{f});
-
-        ylabel('SNR');
-        set(gca,'XTickLabel',round(rcaSettings.binLevels*100)./100);
-        if f==1, hlg=legend(dataLabels,'Location','NorthWest'); end
+        if f==1
+            ylabel('SNR');
+        end
+        set(gca,'XTickLabel',xticks([1 5 end])); % ### assumes 10 bins & horizontally aligned subplots
+        if f==1, hlg=legend(dataLabels,'Location','NorthWest'); set(hlg,'box','off'); end
+        axis square;
     end
+end
+
+% plot the SNRs of each RC computed, using noise estimates pooled over all bins
+figure;
+set(gca,'Color','w');
+for f=1:nFreqs
+    for rc=1:rcaSettings.nComp
+        subplot(1,nFreqs,f);
+        color = (rc/rcaSettings.nComp).*[.7 .7 .7];
+        plot(snrMain(:,f,rc),'-o','Color',color,'MarkerFaceColor',color);
+        hold on;
+        dataLabels{rc} = sprintf('RC%d',rc);
+        title(rcaSettings.freqLabels{f});
+        if f==1
+            ylabel('SNR');
+        end
+        set(gca,'XTickLabel',xticks([1 5 end])); % ### assumes 10 bins & horizontally aligned subplots
+        axis square;
+    end
+    if f==1, hlg=legend(dataLabels,'Location','NorthWest'); end
     set(hlg,'box','off');
 end
