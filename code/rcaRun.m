@@ -135,10 +135,39 @@ end
 
 if show
     h=figure;
+    
+    % ### Holly tmp till hear from Tony & Jacek:
+    symmetricColorbars = true;
+    alignPolarityToRc1 = true;
+    if symmetricColorbars
+        % for a consistent colorbar across RCs:
+        colorbarLimits = [min(A(:)),max(A(:))];
+        newExtreme = max(abs(colorbarLimits));
+        colorbarLimits = [-newExtreme,newExtreme];
+    else
+        colorbarLimits = [];
+    end
+    if alignPolarityToRc1
+        extremeVals = [min(A); max(A)];
+        for rc = 1:nComp
+            [~,f(rc)]=max(abs(extremeVals(:,rc)));
+        end
+        s(1) = 1;
+        for rc = 2:nComp
+            if f(rc)~=f(1)
+                s(rc) = -1;
+            end
+        end
+    else
+        s = ones(1,nComp);
+    end
+    % ### end  
+    
     try
         for c=1:nComp
             subplot(3,nComp,c);
-            topoplot(A(:,c), locfile,'electrodes','off','numcontour',0);
+            %topoplot(A(:,c), locfile,'electrodes','off','numcontour',0);
+            plotOnEgi(s(c).*A(:,c),colorbarLimits);
             title(['RC' num2str(c)]);
             axis off;
         end
