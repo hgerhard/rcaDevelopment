@@ -34,7 +34,11 @@ fprintf('Selected %d subjects and %d conditions for training... \n',nSubjects,nC
 sumXX=zeros(nCond,nSubjects,nElectrodes,nElectrodes);sumYY=zeros(nCond,nSubjects,nElectrodes,nElectrodes);sumXY=zeros(nCond,nSubjects,nElectrodes,nElectrodes);
 nPointsInXX=zeros(nCond,nSubjects,nElectrodes,nElectrodes);nPointsInYY=zeros(nCond,nSubjects,nElectrodes,nElectrodes);nPointsInXY=zeros(nCond,nSubjects,nElectrodes,nElectrodes);
 
-parpool; % should work for all recent versions of Matlab, including R2015*
+if verLessThan('matlab','8.2')
+    matlabpool;
+else
+    parpool; % works for all versions of matlab from R2013b forward (matlabpool was removed in R2015a)
+end
 
 for cond=1:nCond
     for subj=1:nSubjects
@@ -106,7 +110,11 @@ end
 sumXX=squeeze(sumXX); sumYY=squeeze(sumYY); sumXY=squeeze(sumXY);
 nPointsInXX=squeeze(nPointsInXX); nPointsInYY=squeeze(nPointsInYY);  nPointsInXY=squeeze(nPointsInXY);
 
-delete(gcp); %closes the parpool
+if verLessThan('matlab','8.2')
+    matlabpool close;
+else
+    delete(gcp); %closes the parpool
+end
 
 
 

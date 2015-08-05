@@ -152,7 +152,7 @@ if show
         for rc = 1:nComp
             [~,f(rc)]=max(abs(extremeVals(:,rc)));
         end
-        s(1) = 1;
+        s = ones(1,nComp);
         for rc = 2:nComp
             if f(rc)~=f(1)
                 s(rc) = -1;
