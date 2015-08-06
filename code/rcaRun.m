@@ -1,4 +1,4 @@
-function [dataOut,W,A,Rxx,Ryy,Rxy,dGen,h] = rcaRun(data,nReg,nComp,condRange,subjRange,show,locfile)
+function [dataOut,W,A,Rxx,Ryy,Rxy,dGen,plotSettings] = rcaRun(data,nReg,nComp,condRange,subjRange,show,locfile)
 % [DATAOUT,W,A,RXX,RYY,RXY]=RCARUN(DATA,[NREG],[NCOMP],[CONDRANGE],[SUBJRANGE],[SHOW],[LOCFILE])
 % perform RCA dimensionality reduction: learn reliability-maximizing filter
 %   and project data into the corresponding space
@@ -136,7 +136,6 @@ end
 if show
     h=figure;
     
-    % ### Holly tmp till hear from Tony & Jacek:
     symmetricColorbars = true;
     alignPolarityToRc1 = true;
     if symmetricColorbars
@@ -154,14 +153,16 @@ if show
         end
         s = ones(1,nComp);
         for rc = 2:nComp
-            if f(rc)~=f(1)
-                s(rc) = -1;
+            if f(rc)~=f(1) % if the poles containing the maximum corr coef are different
+                s(rc) = -1; % we will flip the sign of that RC's time course & thus its corr coef values (in A) too
             end
         end
     else
         s = ones(1,nComp);
     end
-    % ### end  
+    
+    plotSettings.signFlips = s;
+    plotSettings.colorbarLimits = colorbarLimits;
     
     try
         for c=1:nComp
@@ -172,15 +173,16 @@ if show
             axis off;
         end
     catch
-        fprintf('call to topoplot() failed: check locfile. \n');
-        for c=1:nComp, subplot(3,nComp,c); plot(A(:,c),'*k'); end
+        %fprintf('call to topoplot() failed: check locfile. \n');
+        fprintf('call to plotOnEgi() failed. Plotting electrode values in a 1D style instead.\n');
+        for c=1:nComp, subplot(3,nComp,c); plot(A(:,c),'*k-'); end
         title(['RC' num2str(c)]);
     end
     
     try
         for c=1:nComp
             subplot(3,nComp,c+nComp);
-            shadedErrorBar([],muData(:,c),semData(:,c),'k');
+            shadedErrorBar([],s(c).*muData(:,c),semData(:,c),'k');
             title(['RC' num2str(c) ' time course']);
             axis tight;
         end

@@ -53,3 +53,5 @@ for c=1:nComp
     title(['RC' num2str(c)]);
     axis off;
 end
+
+% make extra plot of colorbar for figure making purposes later ###

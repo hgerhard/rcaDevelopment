@@ -1,4 +1,4 @@
-function [rcaData,W,A,noiseData,comparisonData,comparisonNoiseData,rcaSettings]=rcaSweep(pathnames,binsToUse,freqsToUse,condsToUse,nReg,nComp,dataType,chanToCompare,show)
+function [rcaData,W,A,covData,noiseData,comparisonData,comparisonNoiseData,rcaSettings]=rcaSweep(pathnames,binsToUse,freqsToUse,condsToUse,nReg,nComp,dataType,chanToCompare,show)
 % perform RCA on sweep SSVEP data exported to RLS or DFT format
 %
 % [rcaData,W,A,noiseData,compareData,compareNoiseData,freqIndices,binIndices]=RCASWEEP(PATHNAMES,[BINSTOUSE],[FREQSTOUSE],[CONDSTOUSE],[NREG],[NCOMP],[DATATYPE],[COMPARECHAN],[SHOW])
@@ -20,6 +20,7 @@ function [rcaData,W,A,noiseData,comparisonData,comparisonNoiseData,rcaSettings]=
 % rcaData: returned by rcaRun
 % W: linear transformation matrix to go from sensor space to RC-space
 % A: linear transformation matrix to go from RC-space space to sensor space
+% covData: the covariance data used to learn the RCs
 % noiseData: struct containing fields for the rca space representation of frequency side bands
 % compareData: rcaData for the comparison channel only (if supplied)
 % compareNoiseData: noiseData for the comparison channel only (if supplied)
@@ -101,7 +102,12 @@ binIndices=binIndices{1};
 
 %% run RCA
 fprintf('Running RCA...\n');
-[rcaData,W,A]=rcaRun(sensorData,nReg,nComp); 
+% ### check if data already stored and if so, don't rerun rcaRun?
+[rcaData,W,A,Rxx,Ryy,Rxy,dGen,plotSettings]=rcaRun(sensorData,nReg,nComp); 
+covData.Rxx = Rxx;
+covData.Ryy = Ryy;
+covData.Rxy = Rxy;
+covData.sortedGeneralizedEigenValues = dGen;
 noiseData.lowerSideBand=rcaProject(cellNoiseData1,W); 
 noiseData.higherSideBand=rcaProject(cellNoiseData2,W);
 
@@ -125,5 +131,6 @@ rcaSettings.chanToCompare = chanToCompare;
 rcaSettings.freqLabels = freqLabels; 
 rcaSettings.binLevels = binLevels;
 rcaSettings.dataType = dataType;
+rcaSettings.RCplottingInfo = plotSettings;
 
 %% ### add functionality to plot if show==true (after plotting functions fixed up?)

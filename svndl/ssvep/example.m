@@ -14,7 +14,9 @@ chanToCompare = 75; % channel to use for a performance evaluation
 dataType = 'RLS'; % can also be 'DFT' if you have DFT exports
 
 %% call the function
-[rcaData,W,A,noiseData,ozData,ozNoiseData,rcaSettings]=rcaSweep(pathnames,binsToUse,freqsToUse,condsToUse,nReg,nComp,dataType,chanToCompare);
+[rcaData,W,A,covData,noiseData,ozData,ozNoiseData,rcaSettings]=rcaSweep(pathnames,binsToUse,freqsToUse,condsToUse,nReg,nComp,dataType,chanToCompare);
+% ### add functionality to save data & potentially to avoid rerunning
+% rcaSweep if not necessary
 
 %% examples of provided plotting routines
 plotSnr(rcaData,noiseData,rcaSettings);
@@ -25,3 +27,5 @@ plotSettings.comparisonName = 'OZ';
 plotSnr(rcaData,noiseData,rcaSettings,plotSettings,ozData,ozNoiseData);
 
 plotFreqByComp(rcaData,noiseData,rcaSettings,plotSettings,ozData,ozNoiseData);
+
+% ### add functionality to print plots

@@ -34,7 +34,7 @@ fprintf('Selected %d subjects and %d conditions for training... \n',nSubjects,nC
 sumXX=zeros(nCond,nSubjects,nElectrodes,nElectrodes);sumYY=zeros(nCond,nSubjects,nElectrodes,nElectrodes);sumXY=zeros(nCond,nSubjects,nElectrodes,nElectrodes);
 nPointsInXX=zeros(nCond,nSubjects,nElectrodes,nElectrodes);nPointsInYY=zeros(nCond,nSubjects,nElectrodes,nElectrodes);nPointsInXY=zeros(nCond,nSubjects,nElectrodes,nElectrodes);
 
-if verLessThan('matlab','8.2')
+if verLessThan('matlab','8.2') % 8.2 = version number for R2013b
     matlabpool;
 else
     parpool; % works for all versions of matlab from R2013b forward (matlabpool was removed in R2015a)
