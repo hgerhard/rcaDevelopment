@@ -1,4 +1,4 @@
-function plotSnr(mainRcaData,mainNoiseData,rcaSettings,plotSettings,comparisonRcaData,comparisonNoiseData)
+function [figNums] = plotSnr(mainRcaData,mainNoiseData,rcaSettings,plotSettings,comparisonRcaData,comparisonNoiseData)
 
 % ### add functionality for condition separation
 
@@ -9,6 +9,8 @@ if (nargin>=4 && ~isempty(plotSettings)), useSpecialSettings = true; else useSpe
 if nargin<6, plotComparison = false; else plotComparison = true; end
 
 poolOverBins = true;
+
+figNums = [];
 
 nFreqs = length(rcaSettings.freqsToUse);
 
@@ -50,9 +52,11 @@ if plotComparison
         if f==1, hlg=legend(dataLabels,'Location','NorthWest'); set(hlg,'box','off'); end
         axis square;
     end
+    figNums = [figNums,gcf];
 end
 
 % plot the SNRs of each RC computed, using noise estimates pooled over all bins
+% organize subplots by frequency
 figure;
 set(gca,'Color','w');
 for f=1:nFreqs
@@ -72,3 +76,33 @@ for f=1:nFreqs
     if f==1, hlg=legend(dataLabels,'Location','NorthWest'); end
     set(hlg,'box','off');
 end
+figNums = [figNums,gcf];
+
+
+% plot the SNRs of each RC computed, using noise estimates pooled over all bins
+% organize subplots by RC
+figure;
+set(gca,'Color','w');
+for rc=1:rcaSettings.nComp
+    for f=1:nFreqs
+        subplot(1,rcaSettings.nComp,rc);
+        color = (f/nFreqs).*[.7 .7 .7];
+        plot(snrMain(:,f,rc),'-o','Color',color,'MarkerFaceColor',color);
+        hold on;
+        dataLabels{f} = rcaSettings.freqLabels{f}; 
+        title(sprintf('RC%d',rc));
+        if rc==1
+            ylabel('SNR');
+        end
+        set(gca,'XTickLabel',xticks([1 5 end])); % ### assumes 10 bins & horizontally aligned subplots
+        axis square;
+    end
+    if rc==1, hlg=legend(dataLabels,'Location','NorthWest'); end
+    set(hlg,'box','off');
+end
+figNums = [figNums,gcf];
+
+
+
+
+

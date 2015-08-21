@@ -1,7 +1,7 @@
-function [rcaData,W,A,covData,noiseData,comparisonData,comparisonNoiseData,rcaSettings]=rcaSweep(pathnames,binsToUse,freqsToUse,condsToUse,nReg,nComp,dataType,chanToCompare,show)
+function [rcaData,W,A,covData,noiseData,comparisonData,comparisonNoiseData,rcaSettings]=rcaSweep(pathnames,binsToUse,freqsToUse,condsToUse,nReg,nComp,dataType,chanToCompare,show,rcPlotStyle)
 % perform RCA on sweep SSVEP data exported to RLS or DFT format
 %
-% [rcaData,W,A,noiseData,compareData,compareNoiseData,freqIndices,binIndices]=RCASWEEP(PATHNAMES,[BINSTOUSE],[FREQSTOUSE],[CONDSTOUSE],[NREG],[NCOMP],[DATATYPE],[COMPARECHAN],[SHOW])
+% [rcaData,W,A,noiseData,compareData,compareNoiseData,freqIndices,binIndices]=RCASWEEP(PATHNAMES,[BINSTOUSE],[FREQSTOUSE],[CONDSTOUSE],[NREG],[NCOMP],[DATATYPE],[COMPARECHAN],[SHOW],[RCPLOTSTYLE])
 %
 % INPUTS:
 % pathnames (required): cell vector of string directory names housins DFT_c00x.txt or RLS_c00x.txt exports
@@ -15,6 +15,7 @@ function [rcaData,W,A,covData,noiseData,comparisonData,comparisonNoiseData,rcaSe
 % compareChan: comparison channel index between 1 and the total number
 %   of channels in the specified dataset
 % show: 1 to see a figure of sweep amplitudes for each harmonic and component (defaults to 1), 0 to not display
+% rcPlotStyle: see 'help rcaRun', can be: 'matchMaxSignsToRc1' (default) or 'orig'
 %
 % OUTPUTS:
 % rcaData: returned by rcaRun
@@ -34,18 +35,20 @@ function [rcaData,W,A,covData,noiseData,comparisonData,comparisonNoiseData,rcaSe
 % Jacek P. Dmochowski, 2015, report bugs to dmochowski@gmail.com
 % Edited by HEG 07/2015
 
-if nargin<8, show=1; end
-if nargin<7, 
+if nargin<10 || isempty(rcPlotStyle), rcPlotStyle = []; end
+if nargin<9 || isempty(show), show=1; end
+if nargin<8 || isempty(chanToCompare), 
     computeComparison=false; 
     chanToCompare=NaN;
 elseif ~isempty(chanToCompare)
     computeComparison=true; 
 end
-if nargin<6, dataType = 'RLS'; end
-if nargin<5, nComp=3; end
-if nargin<4, nReg=9; end
-if nargin<3, freqsToUse=1; end
-if nargin<2, binsToUse=0; end
+if nargin<7 || isempty(dataType), dataType = 'RLS'; end
+if nargin<6 || isempty(nComp), nComp=3; end
+if nargin<5 || isempty(nReg), nReg=9; end
+if nargin<4 || isempty(condsToUse), condsToUse=1; end
+if nargin<3 || isempty(freqsToUse), freqsToUse=1; end
+if nargin<2 || isempty(binsToUse), binsToUse=0; end
 if nargin<1, error('Must specify at least one input argument'); end
 
 %% if pathanmes is a string, convert to cell
@@ -102,8 +105,7 @@ binIndices=binIndices{1};
 
 %% run RCA
 fprintf('Running RCA...\n');
-% ### check if data already stored and if so, don't rerun rcaRun?
-[rcaData,W,A,Rxx,Ryy,Rxy,dGen,plotSettings]=rcaRun(sensorData,nReg,nComp); 
+[rcaData,W,A,Rxx,Ryy,Rxy,dGen,plotSettings]=rcaRun(sensorData,nReg,nComp,[],[],show,rcPlotStyle); 
 covData.Rxx = Rxx;
 covData.Ryy = Ryy;
 covData.Rxy = Rxy;
@@ -132,5 +134,3 @@ rcaSettings.freqLabels = freqLabels;
 rcaSettings.binLevels = binLevels;
 rcaSettings.dataType = dataType;
 rcaSettings.RCplottingInfo = plotSettings;
-
-%% ### add functionality to plot if show==true (after plotting functions fixed up?)

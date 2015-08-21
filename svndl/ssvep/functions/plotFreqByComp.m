@@ -1,4 +1,4 @@
-function plotFreqByComp(mainRcaData,mainNoiseData,rcaSettings,plotSettings,comparisonRcaData,comparisonNoiseData)
+function [figNums] = plotFreqByComp(mainRcaData,mainNoiseData,rcaSettings,plotSettings,comparisonRcaData,comparisonNoiseData)
 
 % ### add functionality for condition separation
 if nargin<2, error('You must provide both signal and noise data.'); end
@@ -8,6 +8,8 @@ if (nargin>=4 && ~isempty(plotSettings)), useSpecialSettings = true; else useSpe
 if nargin<6, plotComparison = false; else plotComparison = true; end
 
 poolOverBins = false;
+
+figNums = [];
 
 nFreqs = length(rcaSettings.freqsToUse);
 
@@ -62,6 +64,7 @@ for f=1:nFreqs
         
     end
 end
+figNums = [figNums,gcf];
 
 
 
