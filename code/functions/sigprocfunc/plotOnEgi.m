@@ -26,21 +26,29 @@ if datSz(1)<datSz(2)
 end
 
 if size(data,1) == 128
-tEpos = load('defaultFlatNet.mat');
-tEpos = [ tEpos.xy, zeros(128,1) ];
-
-tEGIfaces = mrC_EGInetFaces( false );
-
-nChan = 128;
+    tEpos = load('defaultFlatNet.mat');
+    tEpos = [ tEpos.xy, zeros(128,1) ];
+    
+    tEGIfaces = mrC_EGInetFaces( false );
+    
+    nChan = 128;
 elseif size(data,1) == 256
     
-tEpos = load('defaultFlatNet256.mat');
-tEpos = [ tEpos.xy, zeros(256,1) ];
-
-tEGIfaces = mrC_EGInetFaces256( false );
-nChan = 256;
+    tEpos = load('defaultFlatNet256.mat');
+    tEpos = [ tEpos.xy, zeros(256,1) ];
+    
+    tEGIfaces = mrC_EGInetFaces256( false );
+    nChan = 256;
+elseif size(data,1) == 32
+    tEpos = load('defaultFlatNet32.mat');
+    tEpos = [ tEpos.xy, zeros(32,1) ];
+    
+    tEGIfaces = mrC_EGInetFaces( false );
+    
+    nChan = 32;
+    
 else
-    error('Only good for 2 montages: Must input a 128 or 256 vector')
+    error('Only good for 3 montages: Must input a 32, 128 or 256 vector')
 end
 
 
