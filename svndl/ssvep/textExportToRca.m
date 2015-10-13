@@ -63,9 +63,9 @@ for f=1:length(filenames)
         nTrialsToKeep=numel(trialIndsToKeep);
         
         %% organize in data
-        eeg=zeros(nFreqs*nBins*2,nChannels,nTrialsToKeep);
-        noise1=zeros(nFreqs*nBins*2,nChannels,nTrialsToKeep);
-        noise2=zeros(nFreqs*nBins*2,nChannels,nTrialsToKeep);
+        eeg=nan(nFreqs*nBins*2,nChannels,nTrialsToKeep);
+        noise1=nan(nFreqs*nBins*2,nChannels,nTrialsToKeep);
+        noise2=nan(nFreqs*nBins*2,nChannels,nTrialsToKeep);
         for tr=1:nTrialsToKeep
             
             thisTrialInd=trialIndsToKeep(tr);
@@ -231,6 +231,11 @@ freqsAnalyzed = freqsAnalyzed(tmpIx);
 for m = 1:length(usCols)
     colHdr{m} = hdrFields{usCols(m),1};
 end
+dataMatrix(:,end+1)=sqrt(dataMatrix(:,end-1).^2+dataMatrix(:,end).^2); % Computes amplitudes in final column
+% replace samples with zero amplitudes with NaN because 0 is PowerDiva's
+% indicator of a rejected epoch
+zeroAmpRows = dataMatrix(:,end)==0;
+dataMatrix(zeroAmpRows,5:end) = nan;
 colHdr{end+1} = 'ampl';
 end
 
