@@ -70,9 +70,9 @@ for f=1:nFreqs
             plot(avgRcaData.ampBins(:,f,rc,condNum),'k-','LineWidth',1.5,'Color',plotSettings.conditionColors(condNum,:));
             hold on
             plot(noiseLevsMain(:,f,rc,condNum),'ks','Color',plotSettings.conditionColors(condNum,:));
-            if ~isempty(errorType)
-                lb = avgRcaData.ampErrBins(:,f,rc,condNum,1);
-                ub = avgRcaData.ampErrBins(:,f,rc,condNum,2);
+            if ~isempty(errorType)                
+                lb = avgRcaData.ampBins(:,f,rc,condNum) - avgRcaData.ampErrBins(:,f,rc,condNum,1);
+                ub = avgRcaData.ampErrBins(:,f,rc,condNum,2) - avgRcaData.ampBins(:,f,rc,condNum);
                 errorbar(1:nBins,avgRcaData.ampBins(:,f,rc,condNum),lb,ub,'Color',plotSettings.conditionColors(condNum,:));
             end
         end
@@ -92,8 +92,8 @@ for f=1:nFreqs
                 hold on
                 plot(noiseLevsCompare(:,f,1,condNum),'rs','Color',plotSettings.conditionColors(condNum,:));
                 if ~isempty(errorType)
-                    lb = avgCompData.ampErrBins(:,f,1,condNum,1);
-                    ub = avgCompData.ampErrBins(:,f,1,condNum,2);
+                    lb = avgCompData.ampBins(:,f,1,condNum) - avgCompData.ampErrBins(:,f,1,condNum,1);
+                    ub = avgCompData.ampErrBins(:,f,1,condNum,2) - avgCompData.ampBins(:,f,1,condNum);
                     errorbar(1:nBins,avgCompData.ampBins(:,f,1,condNum),lb,ub,'Color',plotSettings.conditionColors(condNum,:));
                 end
             end

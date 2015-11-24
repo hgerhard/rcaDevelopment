@@ -120,7 +120,7 @@ if iscell(data)
     dataOut=cell(nCond,nSubjects);
     for subj=1:nSubjects
         for cond=1:nCond
-            fprintf('Projecting into RCA space for subject %d and condition %d... \n',subj,cond);
+            fprintf('Projecting into RCA space for subject %d/%d and condition %d/%d... \n',subj,nSubjects,cond,nCond);
             thisVolume=data{cond,subj};
             dataOut{cond,subj}=rcaProject(thisVolume,W);
         end

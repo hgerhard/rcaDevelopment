@@ -28,7 +28,7 @@ else
     nSubjects=size(data,2);
 end
 
-fprintf('Selected %d subjects and %d conditions for training... \n',nSubjects,nCond);
+fprintf('Selected %d subjects and %d condition(s) for training... \n',nSubjects,nCond);
 
 [~,nElectrodes,~]=size(data{1,1});  % assume uniform (?)
 sumXX=zeros(nCond,nSubjects,nElectrodes,nElectrodes);sumYY=zeros(nCond,nSubjects,nElectrodes,nElectrodes);sumXY=zeros(nCond,nSubjects,nElectrodes,nElectrodes);
@@ -42,7 +42,7 @@ end
 
 for cond=1:nCond
     for subj=1:nSubjects
-        fprintf('Computing covariances for subject %d and condition %d... \n',subjRange(subj),condRange(cond));
+        fprintf('Computing covariances for subject %d/%d and condition %d/%d... \n',subjRange(subj),nSubjects,condRange(cond),nCond);
         thisVolume=data{cond,subj};
         [nSamples,nElectrodes,~]=size(thisVolume);
         if nSamples<nElectrodes, warning('Number of samples is less than the number of electrodes'); end

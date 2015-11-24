@@ -14,7 +14,7 @@ saveFileName = 'rcaData'; % filename for the .mat file that will be saved in you
 
 binsToUse=1:10; % indices of bins to include in analysis (the values must be present in the bin column of all DFT/RLS exports)
 freqsToUse=[1 3 5]; % indices of frequencies to include in analysis (the values must be present in the frequency column of all DFT/RLS exports)
-condsToUse = 1:2; % if you want to include all conditions, create a vector here listing all condition numbers
+condsToUse = 1; % if you want to include all conditions, create a vector here listing all condition numbers
 nReg=7; % RCA regularization constant (7-9 are typical values, but see within-trial eigenvalue plot in rca output)
 nComp=3; % number of RCs that you want to look at (3-5 are good values, but see across-trial eigenvalue plot in rca output)
 chanToCompare = 75; % channel to use for a performance evaluation, can be []
@@ -57,15 +57,17 @@ end
 
 % OR provide the name of the comparison electrode as a field in
 % plotSettings and then call plotSnr:
-
 plotSettings.comparisonName = 'OZ';
 [snrFigNums] = plotSnr(rcaData,noiseData,rcaSettings,plotSettings,ozData,ozNoiseData);
 
 %% For PowerDiva style plots with noise and signal indicated by separate
-% markers, with separate subplots for every combination of RC x frequency,
+% markers, with separate subplots for every combination of RC x frequency
+plotSettings.conditionColors = [0 0 1; 1 0 0];
+plotSettings.showConditions = true;
+plotSettings.errorType = 'SEM';
 % evaluate ONE of the following:
 
-%figNum = plotFreqByComp(rcaData,noiseData,rcaSettings) % generates one plot without the comparison data
+%figNum = plotFreqByComp(rcaData,noiseData,rcaSettings,plotSettings) % generates one plot without the comparison data
 figNum = plotFreqByComp(rcaData,noiseData,rcaSettings,plotSettings,ozData,ozNoiseData); % generates the same plot with an extra column for the comparison sensor
 
 %% Print figures to a file

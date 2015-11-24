@@ -65,25 +65,23 @@ end
 %% read in signal and noise data
 nSubjects=numel(pathnames);
 sensorData={};
-noiseData1={};
-noiseData2={};
+cellNoiseData1={};
+cellNoiseData2={};
 freqIndices=cell(nSubjects,1);
 binIndices=cell(nSubjects,1);
 fprintf('Reading in sensor data from provided path names...\n')
 for s=1:nSubjects
-    sourceDataFileName = sprintf('%s/sourceData.mat',pathnames{s});
+    sourceDataFileName = sprintf('%s/sourceData_%s.mat',pathnames{s},dataType);
     if isempty(dir(sourceDataFileName))
-        [signalData,indF,indB,noise1,noise2,freqLabels,binLevels]=textExportToRca(pathnames{s},binsToUse,freqsToUse,[],dataType,condsToUse);
-        save(sourceDataFileName,'signalData','indF','indB','noise1','noise2','freqLabels','binLevels');
-    else
-        load(sourceDataFileName);
-    end
+        createSourceDataMat(pathnames{s});       
+    end        
+    [signalData,indF,indB,noise1,noise2,freqLabels,binLevels] = selectDataForTraining(sourceDataFileName,binsToUse,freqsToUse,condsToUse);
     freqIndices{s}=indF;
     binIndices{s}=indB;
     sensorData(:,s)=signalData;
     cellNoiseData1(:,s)=noise1;
     cellNoiseData2(:,s)=noise2;
-    fprintf('Done with subject %d/%d: %s\n',s,nSubjects,pathnames{s});
+    fprintf('Done selecting data for subject %d/%d: %s\n',s,nSubjects,pathnames{s});
 end
 nChannels = size(sensorData{1,1},2);
 if computeComparison

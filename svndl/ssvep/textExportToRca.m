@@ -1,15 +1,11 @@
-function [cellData,indF,indB,noiseCell1,noiseCell2,freqsAnalyzed,binLevels]=textExportToRca(pathname,binsToUse,freqsToUse,channelsToUse,dataType,conditionNumbers)
+function [cellData,indF,indB,noiseCell1,noiseCell2,freqsAnalyzed,binLevels,chanIncluded]=textExportToRca(pathname,binsToUse,freqsToUse,channelsToUse,dataType,conditionNumbers)
 
-if nargin<6, selectedConditions = false; elseif nargin==6 selectedConditions = true; end
-if nargin<5, dataType='RLS'; end
-if nargin<4 || (nargin>3 && isempty(channelsToUse)), channelsToUse=1:128; end;
-if nargin<3, freqsToUse=1; fprintf('Using frequency 1 only.'); end;
-if nargin<2, binsToUse=0; fprintf('Using average across bins \n'); end;
-if nargin<1, error('At least one input argument required'); end
-
-nFreqs=numel(freqsToUse);
-nChannels=numel(channelsToUse);
-nBins=numel(binsToUse);
+if nargin<6 || isempty(conditionNumbers), selectedConditions = false; fprintf('Using all conditions. '); elseif nargin==6, selectedConditions = true; end
+if nargin<5 || isempty(dataType), dataType='RLS'; fprintf('Using RLS. '); end;
+if nargin<4 || isempty(channelsToUse), channelsToUse = []; fprintf('Using all channels. '); end;
+if nargin<3 || isempty(freqsToUse), freqsToUse = []; fprintf('Using all frequencies. '); end;
+if nargin<2 || isempty(binsToUse), binsToUse = []; fprintf('Using all bins. '); end;
+if nargin<1, error('Path to datafiles is required'); end
 
 if ~strcmp(pathname(end),'/'), pathname=cat(2,pathname,'/'); end
 
@@ -31,8 +27,8 @@ if selectedConditions
             useFile(f) = 0;
         end
     end
-    nFilenames = sum(useFile);
 end
+nFilenames = sum(useFile);
 
 cellData=cell(nFilenames,1);
 noiseCell1=cell(nFilenames,1);
@@ -62,6 +58,20 @@ for f=1:length(filenames)
         trialIndsToKeep=trialInds(nEntriesPerTrialInd==mode(nEntriesPerTrialInd));
         nTrialsToKeep=numel(trialIndsToKeep);
         
+        % set values to use if they weren't specified
+        if isempty(channelsToUse)
+            channelsToUse = unique(data(:,2));
+        end
+        if isempty(freqsToUse)
+            freqsToUse = unique(data(:,3));
+        end
+        if isempty(binsToUse)
+            binsToUse = unique(data(:,4));
+        end
+        nFreqs=numel(freqsToUse);
+        nChannels=numel(channelsToUse);
+        nBins=numel(binsToUse);
+        
         %% organize in data
         eeg=nan(nFreqs*nBins*2,nChannels,nTrialsToKeep);
         noise1=nan(nFreqs*nBins*2,nChannels,nTrialsToKeep);
@@ -76,16 +86,16 @@ for f=1:length(filenames)
             
             % freqs x bins
             for ch=1:nChannels
-                theseReals=trialData(trialChannels==ch & ismember(trialFreqs,freqsToUse) & ismember(trialBins,binsToUse),5);
-                theseImags=trialData(trialChannels==ch & ismember(trialFreqs,freqsToUse) & ismember(trialBins,binsToUse),6);
+                theseReals=trialData(trialChannels==channelsToUse(ch) & ismember(trialFreqs,freqsToUse) & ismember(trialBins,binsToUse),5);
+                theseImags=trialData(trialChannels==channelsToUse(ch) & ismember(trialFreqs,freqsToUse) & ismember(trialBins,binsToUse),6);
                 
                 % noise 1
-                theseNoiseReals1=trialData(trialChannels==ch & ismember(trialFreqs,freqsToUse) & ismember(trialBins,binsToUse),7);
-                theseNoiseImags1=trialData(trialChannels==ch & ismember(trialFreqs,freqsToUse) & ismember(trialBins,binsToUse),8);
+                theseNoiseReals1=trialData(trialChannels==channelsToUse(ch) & ismember(trialFreqs,freqsToUse) & ismember(trialBins,binsToUse),7);
+                theseNoiseImags1=trialData(trialChannels==channelsToUse(ch) & ismember(trialFreqs,freqsToUse) & ismember(trialBins,binsToUse),8);
                 
                 % noise 2
-                theseNoiseReals2=trialData(trialChannels==ch & ismember(trialFreqs,freqsToUse) & ismember(trialBins,binsToUse),9);
-                theseNoiseImags2=trialData(trialChannels==ch & ismember(trialFreqs,freqsToUse) & ismember(trialBins,binsToUse),10);
+                theseNoiseReals2=trialData(trialChannels==channelsToUse(ch) & ismember(trialFreqs,freqsToUse) & ismember(trialBins,binsToUse),9);
+                theseNoiseImags2=trialData(trialChannels==channelsToUse(ch) & ismember(trialFreqs,freqsToUse) & ismember(trialBins,binsToUse),10);
                 
                 eeg(:,ch,tr)=[theseReals; theseImags];
                 noise1(:,ch,tr)=[theseNoiseReals1; theseNoiseImags1];
@@ -104,11 +114,12 @@ end
 
 binLevels = binLevels(binsToUse);
 freqsAnalyzed = freqsAnalyzed(freqsToUse);
+chanIncluded = channelsToUse;
 
 % figure out feature vector indices (this is being done on the last trial
-% FIXTHIS) ### 
-indF=trialFreqs(trialChannels==1 & ismember(trialFreqs,freqsToUse) & ismember(trialBins,binsToUse));
-indB=trialBins(trialChannels==1 & ismember(trialFreqs,freqsToUse) & ismember(trialBins,binsToUse));
+% & for only the first channel to use, FIXTHIS) ### 
+indF=trialFreqs(trialChannels==channelsToUse(1) & ismember(trialFreqs,freqsToUse) & ismember(trialBins,binsToUse));
+indB=trialBins(trialChannels==channelsToUse(1) & ismember(trialFreqs,freqsToUse) & ismember(trialBins,binsToUse));
 
 end
 %%
@@ -171,8 +182,8 @@ hdrFields = {
 
 
 channelIx = 4;
-harmIx = 9;
 freqIx = 5;
+harmIx = 9;
 
 fid=fopen(fname);
 if fid == -1
@@ -181,9 +192,9 @@ end
 
 tline=fgetl(fid);
 dati=textscan(fid, [hdrFields{:,2}], 'delimiter', '\t', 'EmptyValue', nan);
-% Convert the chanToSave string into digit only
-for i=1:size(dati{1,4})
-    chan{1,i}=sscanf(dati{1, 4}{i}, 'hc%d');
+% Convert the channel identifier string into digit only
+for i=1:size(dati{1,channelIx})
+    chan{1,i}=sscanf(dati{1, channelIx}{i}, 'hc%d');
 end
 
 dati{1,channelIx}=chan';
@@ -211,10 +222,12 @@ for s=1:length(usCols)
 end
 
 binIndices = unique(dataMatrix(:, 4)); % this will always include 0
-binLevels=(dati{1, 12}(2:length(binIndices)));
+binLevels=(dati{1, 12}(2:length(binIndices))); % the 12th column in dati are the bin levels, aka "SweepVal"s, skip the zeroth bin
 binLevels=binLevels';
 
-dataMatrix=dataMatrix(ismember(int16(dataMatrix(:, 3)),int16(chanToSave(:))),:); % Restricts the running matrix to the selected electrodes
+if ~isempty(chanToSave)
+    dataMatrix=dataMatrix(ismember(int16(dataMatrix(:, 2)),int16(chanToSave(:))),:); % Restricts the running matrix to the selected electrodes
+end
 
 dataMatrix=dataMatrix(dataMatrix(:, 4)>0, :); % Selects all bins but the 0th one (i.e. the average bin)
 
