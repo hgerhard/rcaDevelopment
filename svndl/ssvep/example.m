@@ -70,6 +70,13 @@ plotSettings.errorType = 'SEM';
 %figNum = plotFreqByComp(rcaData,noiseData,rcaSettings,plotSettings) % generates one plot without the comparison data
 figNum = plotFreqByComp(rcaData,noiseData,rcaSettings,plotSettings,ozData,ozNoiseData); % generates the same plot with an extra column for the comparison sensor
 
+%% Example plot of threshold fit (### want to make fewer requirements for user to set plotSettings..)
+plotSettings.titleOn = true;
+plotSettings.xlabel = 'Relative Disparity (arc min)';
+plotSettings.xTick = rcaSettings.binLevels([1 5 10]);
+plotSettings.ymax = 25;
+plotRcData(rcaData,noiseData,rcaSettings,plotSettings,1,1)
+
 %% Print figures to a file
 allFigNumbers = [snrFigNums,figNum]; % should include all the returned figure numbers from plotting calls that were already run
 if printFigures, for f=allFigNumbers, figure(f); print('-dpsc',[saveFileNamePath,'.ps'],'-append'), end, end
