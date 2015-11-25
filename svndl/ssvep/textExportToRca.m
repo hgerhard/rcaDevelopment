@@ -33,12 +33,29 @@ nFilenames = sum(useFile);
 cellData=cell(nFilenames,1);
 noiseCell1=cell(nFilenames,1);
 noiseCell2=cell(nFilenames,1);
+binLevels=cell(nFilenames,1);
 
 fcnt = 1;
 for f=1:length(filenames)
     if useFile(f)
         
-        [~,freqsAnalyzed,binLevels,data]=getSweepDataFlex(fullfile(pathname,filenames(f).name),channelsToUse);
+        [~,freqsAnalyzed,binLevelsCrnt,data]=getSweepDataFlex(fullfile(pathname,filenames(f).name),channelsToUse);
+        
+        % set values to use if they weren't specified
+        if isempty(channelsToUse)
+            channelsToUse = unique(data(:,2));
+        end
+        if isempty(freqsToUse)
+            freqsToUse = unique(data(:,3));
+        end
+        if isempty(binsToUse)
+            binsToUse = unique(data(:,4));
+        end
+        nFreqs=numel(freqsToUse);
+        nChannels=numel(channelsToUse);
+        nBins=numel(binsToUse);
+        
+        binLevels{fcnt,1} = binLevelsCrnt(binsToUse);
         
         if isempty(data)
             error('No data found in %s',filenames(f).name);
@@ -57,20 +74,6 @@ for f=1:length(filenames)
         % only keep trials in which the number of entries is congruent
         trialIndsToKeep=trialInds(nEntriesPerTrialInd==mode(nEntriesPerTrialInd));
         nTrialsToKeep=numel(trialIndsToKeep);
-        
-        % set values to use if they weren't specified
-        if isempty(channelsToUse)
-            channelsToUse = unique(data(:,2));
-        end
-        if isempty(freqsToUse)
-            freqsToUse = unique(data(:,3));
-        end
-        if isempty(binsToUse)
-            binsToUse = unique(data(:,4));
-        end
-        nFreqs=numel(freqsToUse);
-        nChannels=numel(channelsToUse);
-        nBins=numel(binsToUse);
         
         %% organize in data
         eeg=nan(nFreqs*nBins*2,nChannels,nTrialsToKeep);
@@ -112,7 +115,6 @@ for f=1:length(filenames)
     end
 end
 
-binLevels = binLevels(binsToUse);
 freqsAnalyzed = freqsAnalyzed(freqsToUse);
 chanIncluded = channelsToUse;
 
@@ -124,12 +126,12 @@ indB=trialBins(trialChannels==channelsToUse(1) & ismember(trialFreqs,freqsToUse)
 end
 %%
 
-function [colHdr, freqsAnalyzed, binLevels, dataMatrix]=getSweepDataFlex(datafile, chanToSave)
+function [colHdr, freqsAnalyzed, sweepVals, dataMatrix]=getSweepDataFlex(datafile, chanToSave)
 
 
 %% Imports Sweep Data from a Text File
 %
-% [colHdr, freqsAnalyzed, binLevels, dataMatrix]=GetSweepDataFlex(datafile, chanToSave)
+% [colHdr, freqsAnalyzed, sweepVals, dataMatrix]=GetSweepDataFlex(datafile, chanToSave)
 %
 %% Inputs:
 % datafile     string containing the data file 
@@ -138,7 +140,7 @@ function [colHdr, freqsAnalyzed, binLevels, dataMatrix]=getSweepDataFlex(datafil
 %% Outputs:
 % colHdr          is a string with column fields
 % freqsAnalyzed   are the individual frequencies of the VEPs ('1F1' etc.)
-% binLevels       are the contrasts or stimulus values used
+% sweepVals       are the contrasts or stimulus values used
 % dataMatrix      matrix containing the desired data
 
 fname=datafile;
@@ -210,7 +212,7 @@ for s=1:length(usCols)
         if isempty(cell2mat((dati{1, o}(:))))
             colHdr = {};
             freqsAnalyzed ={};
-            binLevels= nan;
+            sweepVals= nan;
             dataMatrix = nan;
             fprintf('ERROR! rawdata is empty..\n')
             return;
@@ -222,8 +224,8 @@ for s=1:length(usCols)
 end
 
 binIndices = unique(dataMatrix(:, 4)); % this will always include 0
-binLevels=(dati{1, 12}(2:length(binIndices))); % the 12th column in dati are the bin levels, aka "SweepVal"s, skip the zeroth bin
-binLevels=binLevels';
+sweepVals=(dati{1, 12}(2:length(binIndices))); % the 12th column in dati are the bin levels, aka "SweepVal"s, skip the zeroth bin
+sweepVals=sweepVals';
 
 if ~isempty(chanToSave)
     dataMatrix=dataMatrix(ismember(int16(dataMatrix(:, 2)),int16(chanToSave(:))),:); % Restricts the running matrix to the selected electrodes

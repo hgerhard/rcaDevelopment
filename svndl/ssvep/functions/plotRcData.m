@@ -55,10 +55,10 @@ avgNoise2Data = aggregateData(mainNoiseData.higherSideBand,rcaSettings,separateC
 figNums = [];
 ampVals = nan(nCond,nBins,nFreqs);
 noiseVals = nan(nCond,nBins,nFreqs);
-binVals = rcaSettings.binLevels;
 
 for f=1:nFreqs
     figure;
+    binVals = rcaSettings.binLevels{allCondsInd(1)}; % ### use first condition to be plotted.
     if isLogSpaced(binVals)
         set(gca,'XScale','log');
     end
@@ -66,30 +66,33 @@ for f=1:nFreqs
     set(gca,'FontSize',24);
     set(gca,'FontWeight','light');
     set(gca,'Color','w');
-    if plotSettings.titleOn
-        title(rcaSettings.freqLabels{f});
+    if ~isempty(plotSettings.titleToUse)
+        title(plotSettings.titleToUse);
     end
     ylabel('Amplitude (\muVolts)')
     xlabel(plotSettings.xlabel);
     rc = RCtoPlot;
     
     for condNum = allCondsInd
+        
+        binVals = rcaSettings.binLevels{condNum};
+
         ampVals(condNum,:,f) = avgRcaData.ampBins(:,f,rc,condNum);
         noiseVals(condNum,:,f) = noiseLevsMain(:,f,rc,condNum);
         
         if isLogSpaced(binVals)
             semilogx(binVals,ampVals(condNum,:,f),'k-','LineWidth',3,'Color',plotSettings.conditionColors(condNum,:));
-            semilogx(binVals,noiseVals(condNum,:,f),'ks','Color',plotSettings.conditionColors(condNum,:),'MarkerSize',18,...
-                'MarkerFaceColor',plotSettings.conditionColors(condNum,:));
+            semilogx(binVals,noiseVals(condNum,:,f),'ks','Color',plotSettings.conditionColors(condNum,:),'MarkerSize',12)%,...
+                %'MarkerFaceColor',plotSettings.conditionColors(condNum,:));
         else            
             plot(binVals,ampVals(condNum,:,f),'k-','LineWidth',3,'Color',plotSettings.conditionColors(condNum,:));
-            plot(binVals,noiseVals(condNum,:,f),'ks','Color',plotSettings.conditionColors(condNum,:),'MarkerSize',18,...
-                'MarkerFaceColor',plotSettings.conditionColors(condNum,:));
+            plot(binVals,noiseVals(condNum,:,f),'ks','Color',plotSettings.conditionColors(condNum,:),'MarkerSize',12)%,...
+                %'MarkerFaceColor',plotSettings.conditionColors(condNum,:));
         end
         if ~isempty(errorType)
-            lb = avgRcaData.ampErrBins(:,f,rc,condNum,1);
-            ub = avgRcaData.ampErrBins(:,f,rc,condNum,2);
-            errorbar(binVals,ampVals(condNum,:,f),lb,ub,'Color',plotSettings.conditionColors(condNum,:));
+            lb = ampVals(condNum,:,f)' - avgRcaData.ampErrBins(:,f,rc,condNum,1);
+            ub = avgRcaData.ampErrBins(:,f,rc,condNum,2) - ampVals(condNum,:,f)';
+            errorbar(binVals,ampVals(condNum,:,f),lb,ub,'Color',plotSettings.conditionColors(condNum,:),'LineWidth',1.5);
         end
         
         if plotThreshold
@@ -97,7 +100,7 @@ for f=1:nFreqs
             sweepMatSubjects = constructSweepMatSubjects(mainRcaData,rcaSettings,...
                 mainNoiseData.lowerSideBand,mainNoiseData.higherSideBand,rc,condNum,f);
             
-            [tThr,tSlp,tLSB,tRSB,~,tYFitPos,tXX] = powerDivaScoring(sweepMatSubjects, rcaSettings.binLevels);
+            [tThr,tSlp,tLSB,tRSB,~,tYFitPos,tXX] = powerDivaScoring(sweepMatSubjects, rcaSettings.binLevels{condNum});
             threshVal(f,condNum) = tThr;
             slopeVal(f,condNum) = tSlp;
             fitBinRange(f,condNum,:) = [tLSB,tRSB];
@@ -116,6 +119,7 @@ for f=1:nFreqs
     
     if plotThreshold && any(threshFitted(f,:)>0)
         for condNum = 1:nCond
+            binVals = rcaSettings.binLevels{condNum};
             if threshFitted(f,condNum)
                 if isLogSpaced(binVals)
                     semilogx(saveXX{f,condNum},saveY{f,condNum},'k-','LineWidth',3);
@@ -126,6 +130,7 @@ for f=1:nFreqs
                     plot(threshVal(f,condNum),0,'kd','MarkerSize',18,...
                         'MarkerFaceColor',plotSettings.conditionColors(condNum,:),'LineWidth',3);
                 end
+                text(.9*threshVal(f,condNum),.8*max(ylim),sprintf('%2.2f',threshVal(f,condNum)),'Color',plotSettings.conditionColors(condNum,:));
             end
         end
     end
@@ -133,12 +138,15 @@ for f=1:nFreqs
     set(gca,'XTick',plotSettings.xTick);
     xlim([binVals(1)-(binVals(2)-binVals(1)) binVals(end)+(binVals(end)-binVals(end-1))])
     %set(gca,'XTickLabel',round(rcaSettings.binLevels*10)./10);
-    ylim([0 plotSettings.ymax]);
+    if ~isempty(plotSettings.ymax)
+        ylim([0 plotSettings.ymax]);
+    end
     figNums = [figNums,gcf];
+    text(0.8*max(xlim),0.8*max(ylim),rcaSettings.freqLabels{f},'FontSize',20);
         
 end
 
-if plotThreshold
+if plotThreshold && any(threshFitted(f,:)>0)
     threshInfo.threshFitted = threshFitted;
     threshInfo.xx = saveXX;
     threshInfo.YY = saveY;

@@ -12,12 +12,15 @@ nC = size(signalData,2);
 signalDataSel = cell(nR,nC);
 noise1Sel = cell(nR,nC);
 noise2Sel = cell(nR,nC);
+binLevelsSel = cell(nR,1);
 selRowIx = ismember(indB,binsToUse) & ismember(indF,freqsToUse);
 for row = 1:nR
     for col = 1:nC
         signalDataSel{row,col} = signalData{condsToUse(row),col}(repmat(selRowIx,[2 1]),:,:); % repmat because the first half is real, second half is imag with same ordering
         noise1Sel{row,col}     =     noise1{condsToUse(row),col}(repmat(selRowIx,[2 1]),:,:);
         noise2Sel{row,col}     =     noise2{condsToUse(row),col}(repmat(selRowIx,[2 1]),:,:);
+        
+        binLevelsSel{row} = binLevels{condsToUse(row)}(binsToUse);
     end
 end
 
@@ -27,4 +30,3 @@ indFSel = indF(selRowIx);
 for k = 1:length(freqsToUse)
     freqLabelsSel{k,1} = freqLabels{freqsToUse(k)};
 end
-binLevelsSel = binLevels(binsToUse);

@@ -73,7 +73,7 @@ figNum = plotFreqByComp(rcaData,noiseData,rcaSettings,plotSettings,ozData,ozNois
 %% Example plot of threshold fit (### want to make fewer requirements for user to set plotSettings..)
 plotSettings.titleOn = true;
 plotSettings.xlabel = 'Relative Disparity (arc min)';
-plotSettings.xTick = rcaSettings.binLevels([1 5 10]);
+plotSettings.xTick = rcaSettings.binLevels{1}([1 5 10]);
 plotSettings.ymax = 25;
 plotRcData(rcaData,noiseData,rcaSettings,plotSettings,1,1)
 

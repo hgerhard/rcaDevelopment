@@ -28,31 +28,32 @@ if plotComparison
     snrComparison = computeSnr(avgCompData,avgCompNoise1Data,avgCompNoise2Data,poolOverBins);
 end
 
-xticks = round(rcaSettings.binLevels*100)./100;
+xticks = 1:length(rcaSettings.binLevels{1}); 
 if plotComparison
     % plot SNR of RC1 and comparison channel, using noise estimates pooled over all bins
-    rc=1;
-    figure;
-    set(gca,'Color','w');
-    for f=1:nFreqs
-        subplot(1,nFreqs,f); hold on % ### won't work if >3 RCs
-        plot(snrMain(:,f,rc),'-ok','MarkerFaceColor','k');
-        dataLabels = sprintf('RC%d',rc);
-        plot(snrComparison(:,f,1),'-or','MarkerFaceColor','r');
-        if useSpecialSettings
-            dataLabels = {dataLabels,plotSettings.comparisonName};
-        else
-            dataLabels = {dataLabels,'Comparison'};
+    for rc = 1:rcaSettings.nComp
+        figure;
+        set(gca,'Color','w');
+        for f=1:nFreqs
+            subplot(1,nFreqs,f); hold on % ### won't work if >3 RCs
+            plot(snrMain(:,f,rc),'-ok','MarkerFaceColor','k');
+            dataLabels = sprintf('RC%d',rc);
+            plot(snrComparison(:,f,1),'-or','MarkerFaceColor','r');
+            if useSpecialSettings
+                dataLabels = {dataLabels,plotSettings.comparisonName};
+            else
+                dataLabels = {dataLabels,'Comparison'};
+            end
+            title(rcaSettings.freqLabels{f});
+            if f==1
+                ylabel('SNR');
+            end
+            set(gca,'XTickLabel',xticks([1 floor(length(xticks)/2) end]));
+            if f==1, hlg=legend(dataLabels,'Location','NorthWest'); set(hlg,'box','off'); end
+            axis square;
         end
-        title(rcaSettings.freqLabels{f});
-        if f==1
-            ylabel('SNR');
-        end
-        set(gca,'XTickLabel',xticks([1 5 end])); % ### assumes 10 bins & horizontally aligned subplots
-        if f==1, hlg=legend(dataLabels,'Location','NorthWest'); set(hlg,'box','off'); end
-        axis square;
+        figNums = [figNums,gcf];
     end
-    figNums = [figNums,gcf];
 end
 
 % plot the SNRs of each RC computed, using noise estimates pooled over all bins
@@ -70,7 +71,7 @@ for f=1:nFreqs
         if f==1
             ylabel('SNR');
         end
-        set(gca,'XTickLabel',xticks([1 5 end])); % ### assumes 10 bins & horizontally aligned subplots
+        set(gca,'XTickLabel',xticks([1 floor(length(xticks)/2) end])); 
         axis square;
     end
     if f==1, hlg=legend(dataLabels,'Location','NorthWest'); end
@@ -94,7 +95,7 @@ for rc=1:rcaSettings.nComp
         if rc==1
             ylabel('SNR');
         end
-        set(gca,'XTickLabel',xticks([1 5 end])); % ### assumes 10 bins & horizontally aligned subplots
+        set(gca,'XTickLabel',xticks([1 floor(length(xticks)/2) end])); 
         axis square;
     end
     if rc==1, hlg=legend(dataLabels,'Location','NorthWest'); end

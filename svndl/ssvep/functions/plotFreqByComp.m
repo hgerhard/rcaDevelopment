@@ -77,7 +77,7 @@ for f=1:nFreqs
             end
         end
         set(gca,'XTick',binsToTick);
-        set(gca,'XTickLabel',round(rcaSettings.binLevels(binsToTick)*100)./100);
+        set(gca,'XTickLabel',round(rcaSettings.binLevels{condNum}(binsToTick)*100)./100); % ### assumes all conditions plotted have same binLevels
         xlim([0 nBins+1]);
         
         if f==1, title(['RC' num2str(rc)']); end
@@ -98,7 +98,8 @@ for f=1:nFreqs
                 end
             end
             set(gca,'XTick',binsToTick);
-            set(gca,'XTickLabel',round(rcaSettings.binLevels(binsToTick)*100)./100); 
+            set(gca,'XTickLabel',round(rcaSettings.binLevels{condNum}(binsToTick)*100)./100); % ### assumes all conditions plotted have same binLevels
+            xlim([0 nBins+1]);
             xlim([0 nBins+1]);
             if f==1
                 if useSpecialSettings
