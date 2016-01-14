@@ -7,7 +7,7 @@ function varargout = plotOnEgi(data,colorbarLimits,showColorbar,flipPolarity)
 %This function will plot data on the standardized EGI mesh with the
 %arizona colormap.
 %
-%Data must be a 128 dimensional vector, but can have singleton dimensions,
+%Data must be a 128 dimensional vector, but can have singleton dimensions.
 %
 %
 
