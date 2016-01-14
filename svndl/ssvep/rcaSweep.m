@@ -120,6 +120,7 @@ if computeComparison
 end
 
 %% package some of the necessary variables for plotting/grouping data later on
+rcaSettings.dataFolders = pathnames;
 rcaSettings.freqIndices = freqIndices;
 rcaSettings.binIndices = binIndices;
 rcaSettings.binsToUse = binsToUse;
