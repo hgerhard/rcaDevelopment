@@ -97,12 +97,15 @@ for f=1:nFreqs
         
         if plotThreshold
             clear sweepMatSubjects;
-            sweepMatSubjects = constructSweepMatSubjects(mainRcaData,rcaSettings,...
+            sweepMatSubjects = constructSweepMatSubjectsRCA(mainRcaData,rcaSettings,...
                 mainNoiseData.lowerSideBand,mainNoiseData.higherSideBand,rc,condNum,f);
             
-            [tThr,tSlp,tLSB,tRSB,~,tYFitPos,tXX] = powerDivaScoring(sweepMatSubjects, rcaSettings.binLevels{condNum});
+            [tThr,tThrStdErr,tSlp,tSlpStdErr,tLSB,tRSB,~,tYFitPos,tXX] = getThreshScoringOutput(sweepMatSubjects, rcaSettings.binLevels{condNum});
+
             threshVal(f,condNum) = tThr;
+            threshErr(f,condNum) = tThrStdErr;
             slopeVal(f,condNum) = tSlp;
+            slopeErr(f,condNum) = tSlpStdErr;
             fitBinRange(f,condNum,:) = [tLSB,tRSB];
             if isnan(tThr)
                 fprintf('No threshold could be fitted for CondNum = %d (%s).\n',condNum,rcaSettings.freqLabels{f});
@@ -120,8 +123,15 @@ for f=1:nFreqs
     if plotThreshold && any(threshFitted(f,:)>0)
         for condNum = 1:nCond
             binVals = rcaSettings.binLevels{condNum};
-            if threshFitted(f,condNum)
-                if isLogSpaced(binVals)
+            if threshFitted(f,condNum)                
+                % add shaded error region on threshold values:
+                h = fill([threshVal(f,condNum)-threshErr(f,condNum) threshVal(f,condNum)+threshErr(f,condNum) threshVal(f,condNum)+threshErr(f,condNum) threshVal(f,condNum)-threshErr(f,condNum)],...
+                    [min(ylim) min(ylim) max(ylim) max(ylim)],'k');
+                set(h,'LineStyle','none','FaceAlpha',0.2,'FaceColor',plotSettings.conditionColors(condNum,:));
+                
+                % plot the linear fits & threshold values:
+                if isLogSpaced(binVals)                    
+                    set(gca,'XScale','log');
                     semilogx(saveXX{f,condNum},saveY{f,condNum},'k-','LineWidth',3);
                     semilogx(threshVal(f,condNum),0,'kd','MarkerSize',18,...
                         'MarkerFaceColor',plotSettings.conditionColors(condNum,:),'LineWidth',3);
@@ -130,7 +140,9 @@ for f=1:nFreqs
                     plot(threshVal(f,condNum),0,'kd','MarkerSize',18,...
                         'MarkerFaceColor',plotSettings.conditionColors(condNum,:),'LineWidth',3);
                 end
-                text(.9*threshVal(f,condNum),.8*max(ylim),sprintf('%2.2f',threshVal(f,condNum)),'Color',plotSettings.conditionColors(condNum,:));
+                text((threshVal(f,condNum)-min(xlim))/2+min(xlim),0.3*max(ylim),sprintf('thresh (slope): %2.3f+/-%2.3f (%2.3f+/-%2.3f)',threshVal(f,condNum),threshErr(f,condNum),slopeVal(f,condNum),slopeErr(f,condNum)),'Color',plotSettings.conditionColors(condNum,:),'FontSize',12);
+
+                %text(.9*threshVal(f,condNum),.8*max(ylim),sprintf('%2.2f',threshVal(f,condNum)),'Color',plotSettings.conditionColors(condNum,:));
             end
         end
     end

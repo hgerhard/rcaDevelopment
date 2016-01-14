@@ -75,7 +75,7 @@ if keepConditions
                         if size(xyData,1)<2
                             keyboard;
                         end
-                        [~,ampErrBins(b,f,rc,condNum,:)] = getErrorEllipse(xyData,[],ampErrorType);
+                        ampErrBins(b,f,rc,condNum,:) = fitErrorEllipse(xyData,ampErrorType);
                     end
                 end
             end            

@@ -9,7 +9,7 @@ function varargout = plotOnEgi(data,colorbarLimits,showColorbar)
 %
 %
 
-if nargin<2
+if nargin<2 || isempty(colorbarLimits)
     colorbarLimits = [min(data(:)),max(data(:))];    
     newExtreme = max(abs(colorbarLimits));
     colorbarLimits = [-newExtreme,newExtreme];

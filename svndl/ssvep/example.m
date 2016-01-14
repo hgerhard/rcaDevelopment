@@ -1,4 +1,16 @@
 %% Example script to call rcaSweep on a dataset
+% 
+% Note! To run the full functionality of this code, you must also have the 
+% free, public repository of code called sweepAnalysis/ which includes helper
+% functions that are used for estimating error ellipses, confidence intervals,
+% threshold fitting, jackknifing errors, and more. Please be sure to download 
+% the latest version from:
+% 
+% https://github.com/hgerhard/sweepAnalysis
+%
+% Be sure to add the directory to your Matlab path, so that it can find the
+% functions!
+
 %% First clear/close everything to start fresh: --- USER runs this section ---
 clear all; close all; clc
 
@@ -14,7 +26,7 @@ saveFileName = 'rcaData'; % filename for the .mat file that will be saved in you
 
 binsToUse=1:10; % indices of bins to include in analysis (the values must be present in the bin column of all DFT/RLS exports)
 freqsToUse=[1 3 5]; % indices of frequencies to include in analysis (the values must be present in the frequency column of all DFT/RLS exports)
-condsToUse = 1; % if you want to include all conditions, create a vector here listing all condition numbers
+condsToUse = [1 2]; % if you want to include all conditions, create a vector here listing all condition numbers
 nReg=7; % RCA regularization constant (7-9 are typical values, but see within-trial eigenvalue plot in rca output)
 nComp=3; % number of RCs that you want to look at (3-5 are good values, but see across-trial eigenvalue plot in rca output)
 chanToCompare = 75; % channel to use for a performance evaluation, can be []
@@ -72,9 +84,10 @@ figNum = plotFreqByComp(rcaData,noiseData,rcaSettings,plotSettings,ozData,ozNois
 
 %% Example plot of threshold fit (### want to make fewer requirements for user to set plotSettings..)
 plotSettings.titleOn = true;
+plotSettings.titleToUse = [];
 plotSettings.xlabel = 'Relative Disparity (arc min)';
 plotSettings.xTick = rcaSettings.binLevels{1}([1 5 10]);
-plotSettings.ymax = 25;
+plotSettings.ymax = [];
 plotRcData(rcaData,noiseData,rcaSettings,plotSettings,1,1)
 
 %% Print figures to a file

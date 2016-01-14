@@ -1,4 +1,4 @@
-function [sweepMatSubjects] = constructSweepMatSubjects(rcaData,rcaSettings,noiseData1,noiseData2,compNum,condNum,freqNum)
+function [sweepMatSubjects] = constructSweepMatSubjectsRCA(rcaData,rcaSettings,noiseData1,noiseData2,compNum,condNum,freqNum)
 
 nConditions = size(rcaData,1);
 nSubjects = size(rcaData,2);
