@@ -124,10 +124,16 @@ for f=1:nFreqs
         for condNum = 1:nCond
             binVals = rcaSettings.binLevels{condNum};
             if threshFitted(f,condNum)                
-                % add shaded error region on threshold values:
-                h = fill([threshVal(f,condNum)-threshErr(f,condNum) threshVal(f,condNum)+threshErr(f,condNum) threshVal(f,condNum)+threshErr(f,condNum) threshVal(f,condNum)-threshErr(f,condNum)],...
-                    [min(ylim) min(ylim) max(ylim) max(ylim)],'k');
-                set(h,'LineStyle','none','FaceAlpha',0.2,'FaceColor',plotSettings.conditionColors(condNum,:));
+%                 % add shaded error region on threshold values:
+%                 h = fill([threshVal(f,condNum)-threshErr(f,condNum) threshVal(f,condNum)+threshErr(f,condNum) threshVal(f,condNum)+threshErr(f,condNum) threshVal(f,condNum)-threshErr(f,condNum)],...
+%                     [min(ylim) min(ylim) max(ylim) max(ylim)],'k');
+%                 set(h,'LineStyle','none','FaceAlpha',0.2,'FaceColor',plotSettings.conditionColors(condNum,:));
+                
+                yExtremes = [min(ylim) max(ylim)];
+                plot(repmat(threshVal(f,condNum)-threshErr(f,condNum),[1 2]),...
+                    yExtremes,'k--','Color',plotSettings.conditionColors(condNum,:))
+                plot(repmat(threshVal(f,condNum)+threshErr(f,condNum),[1 2]),...
+                    yExtremes,'k--','Color',plotSettings.conditionColors(condNum,:))
                 
                 % plot the linear fits & threshold values:
                 if isLogSpaced(binVals)                    
@@ -140,8 +146,8 @@ for f=1:nFreqs
                     plot(threshVal(f,condNum),0,'kd','MarkerSize',18,...
                         'MarkerFaceColor',plotSettings.conditionColors(condNum,:),'LineWidth',3);
                 end
-                text((threshVal(f,condNum)-min(xlim))/2+min(xlim),0.3*max(ylim),sprintf('thresh (slope): %2.3f+/-%2.3f (%2.3f+/-%2.3f)',threshVal(f,condNum),threshErr(f,condNum),slopeVal(f,condNum),slopeErr(f,condNum)),'Color',plotSettings.conditionColors(condNum,:),'FontSize',12);
-
+                text((threshVal(f,condNum)-min(xlim))/2+min(xlim),0.7*max(ylim),sprintf('thresh (slope): %2.3f+/-%2.3f (%2.3f+/-%2.3f)',threshVal(f,condNum),threshErr(f,condNum),slopeVal(f,condNum),slopeErr(f,condNum)),'Color',plotSettings.conditionColors(condNum,:),'FontSize',12);
+                ylim(yExtremes);
                 %text(.9*threshVal(f,condNum),.8*max(ylim),sprintf('%2.2f',threshVal(f,condNum)),'Color',plotSettings.conditionColors(condNum,:));
             end
         end
