@@ -69,8 +69,8 @@ end
 set(handle,'facevertexCdata',data,'linewidth',0.5,'markersize',4,'marker','.');
 set(handle,'userdata','plotOnEgi');
 
-%colormap(jmaColors('usadarkblue'));
-colormap parula
+colormap(jmaColors('coolhotcortex'));
+%colormap parula
 %colormap gray
 if showColorbar
     colorbar
