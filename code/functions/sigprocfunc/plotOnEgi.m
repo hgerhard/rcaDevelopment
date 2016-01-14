@@ -1,5 +1,7 @@
-function varargout = plotOnEgi(data,colorbarLimits,showColorbar)
-%plotOnEgi - Plots data on a standarized EGI net mesh
+function varargout = plotOnEgi(data,colorbarLimits,showColorbar,flipPolarity)
+% plotOnEgi(data,colorbarLimits,showColorbar,flipPolarity)
+%
+% - Plots data on a standarized EGI net mesh
 %function meshHandle = plotOnEgi(data)
 %
 %This function will plot data on the standardized EGI mesh with the
@@ -14,8 +16,15 @@ if nargin<2 || isempty(colorbarLimits)
     newExtreme = max(abs(colorbarLimits));
     colorbarLimits = [-newExtreme,newExtreme];
 end
-if nargin<3
+if nargin<3 || isempty(showColorbar)
     showColorbar = false;
+end
+if nargin<4 || isempty(flipPolarity)
+    flipPolarity = false;
+end
+   
+if flipPolarity
+    data = -1.*data;
 end
 
 data = squeeze(data);
