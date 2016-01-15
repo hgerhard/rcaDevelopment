@@ -31,14 +31,15 @@ end
 xticks = 1:length(rcaSettings.binLevels{1}); 
 if plotComparison
     % plot SNR of RC1 and comparison channel, using noise estimates pooled over all bins
+    figure;
+    set(gca,'Color','w');
     for rc = 1:rcaSettings.nComp
-        figure;
-        set(gca,'Color','w');
         for f=1:nFreqs
-            subplot(1,nFreqs,f); hold on % ### won't work if >3 RCs
-            plot(snrMain(:,f,rc),'-ok','MarkerFaceColor','k');
+            subplot(rcaSettings.nComp,nFreqs,f+nFreqs*(rc-1)); hold on 
+            color = (rc/rcaSettings.nComp).*[.7 .7 .7];
+            plot(snrMain(:,f,rc),'-ok','MarkerFaceColor',color,'MarkerEdgeColor','none','Color',color);
             dataLabels = sprintf('RC%d',rc);
-            plot(snrComparison(:,f,1),'-or','MarkerFaceColor','r');
+            plot(snrComparison(:,f,1),'-or','MarkerFaceColor','r','MarkerEdgeColor','none');
             if useSpecialSettings
                 dataLabels = {dataLabels,plotSettings.comparisonName};
             else
@@ -52,8 +53,8 @@ if plotComparison
             if f==1, hlg=legend(dataLabels,'Location','NorthWest'); set(hlg,'box','off'); end
             axis square;
         end
-        figNums = [figNums,gcf];
     end
+    figNums = [figNums,gcf];
 end
 
 % plot the SNRs of each RC computed, using noise estimates pooled over all bins
