@@ -1,4 +1,4 @@
-function [figNums,ampVals,noiseVals,binVals,threshInfo] = plotRcData(mainRcaData,mainNoiseData,rcaSettings,plotSettings,RCtoPlot,plotThreshold)
+function [figNums,ampVals,noiseVals,binVals,threshInfo] = plotRcData(mainRcaData,mainNoiseData,rcaSettings,plotSettings,RCtoPlot,FreqToPlot,plotThreshold)
 % [figNums] = plotRcData(mainRcaData,mainNoiseData,rcaSettings,plotSettings,RCtoPlot)
 %
 % Plot modelled after PowerDiva with squares to
@@ -11,8 +11,9 @@ function [figNums,ampVals,noiseVals,binVals,threshInfo] = plotRcData(mainRcaData
 if nargin<2, error('You must provide both signal and noise data.'); end
 if nargin<3, error('You must provide the rcaSettings struct created when your rca data were created.'); end
 if (nargin<4 || isempty(plotSettings)), useSpecialSettings = false; else useSpecialSettings = true; end
-if nargin<5, RCtoPlot = 1; end
-if nargin<6, plotThreshold = 0; end
+if nargin<5 || isempty(RCtoPlot), RCtoPlot = 1; end
+if nargin<6 || isempty(FreqToPlot), FreqToPlot = 1; end
+if nargin<7, plotThreshold = 0; end
 
 poolOverBins = false;
 
@@ -56,115 +57,127 @@ figNums = [];
 ampVals = nan(nCond,nBins,nFreqs);
 noiseVals = nan(nCond,nBins,nFreqs);
 
-for f=1:nFreqs
-    figure;
-    binVals = rcaSettings.binLevels{allCondsInd(1)}; % ### use first condition to be plotted.
+rc = RCtoPlot;
+f = FreqToPlot;
+
+figure;
+binVals = rcaSettings.binLevels{allCondsInd(1)}; % ### use first condition to be plotted.
+if isLogSpaced(binVals)
+    set(gca,'XScale','log');
+end
+hold on;
+set(gca,'FontSize',24);
+set(gca,'FontWeight','light');
+set(gca,'Color','w');
+set(gcf,'Color','w')
+if ~isempty(plotSettings.titleToUse)
+    title(plotSettings.titleToUse);
+end
+ylabel('Amplitude (\muVolts)')
+xlabel(plotSettings.xlabel);
+
+for condNum = allCondsInd
+    
+    binVals = rcaSettings.binLevels{condNum};
+    
+    ampVals(condNum,:,f) = avgRcaData.ampBins(:,f,rc,condNum);
+    noiseVals(condNum,:,f) = noiseLevsMain(:,f,rc,condNum);
+    
     if isLogSpaced(binVals)
-        set(gca,'XScale','log');
+        semilogx(binVals,ampVals(condNum,:,f),'k-','LineWidth',3,'Color',plotSettings.conditionColors(condNum,:));
+        semilogx(binVals,noiseVals(condNum,:,f),'ks','Color',plotSettings.conditionColors(condNum,:),'MarkerSize',12)%,...
+        %'MarkerFaceColor',plotSettings.conditionColors(condNum,:));
+    else
+        plot(binVals,ampVals(condNum,:,f),'k-','LineWidth',3,'Color',plotSettings.conditionColors(condNum,:));
+        plot(binVals,noiseVals(condNum,:,f),'ks','Color',plotSettings.conditionColors(condNum,:),'MarkerSize',12)%,...
+        %'MarkerFaceColor',plotSettings.conditionColors(condNum,:));
     end
-    hold on;
-    set(gca,'FontSize',24);
-    set(gca,'FontWeight','light');
-    set(gca,'Color','w');
-    if ~isempty(plotSettings.titleToUse)
-        title(plotSettings.titleToUse);
-    end
-    ylabel('Amplitude (\muVolts)')
-    xlabel(plotSettings.xlabel);
-    rc = RCtoPlot;
-    
-    for condNum = allCondsInd
-        
-        binVals = rcaSettings.binLevels{condNum};
-
-        ampVals(condNum,:,f) = avgRcaData.ampBins(:,f,rc,condNum);
-        noiseVals(condNum,:,f) = noiseLevsMain(:,f,rc,condNum);
-        
-        if isLogSpaced(binVals)
-            semilogx(binVals,ampVals(condNum,:,f),'k-','LineWidth',3,'Color',plotSettings.conditionColors(condNum,:));
-            semilogx(binVals,noiseVals(condNum,:,f),'ks','Color',plotSettings.conditionColors(condNum,:),'MarkerSize',12)%,...
-                %'MarkerFaceColor',plotSettings.conditionColors(condNum,:));
-        else            
-            plot(binVals,ampVals(condNum,:,f),'k-','LineWidth',3,'Color',plotSettings.conditionColors(condNum,:));
-            plot(binVals,noiseVals(condNum,:,f),'ks','Color',plotSettings.conditionColors(condNum,:),'MarkerSize',12)%,...
-                %'MarkerFaceColor',plotSettings.conditionColors(condNum,:));
-        end
-        if ~isempty(errorType)
-            lb = ampVals(condNum,:,f)' - avgRcaData.ampErrBins(:,f,rc,condNum,1);
-            ub = avgRcaData.ampErrBins(:,f,rc,condNum,2) - ampVals(condNum,:,f)';
-            errorbar(binVals,ampVals(condNum,:,f),lb,ub,'Color',plotSettings.conditionColors(condNum,:),'LineWidth',1.5);
-        end
-        
-        if plotThreshold
-            clear sweepMatSubjects;
-            sweepMatSubjects = constructSweepMatSubjectsRCA(mainRcaData,rcaSettings,...
-                mainNoiseData.lowerSideBand,mainNoiseData.higherSideBand,rc,condNum,f);
-            
-            [tThr,tThrStdErr,tSlp,tSlpStdErr,tLSB,tRSB,~,tYFitPos,tXX] = getThreshScoringOutput(sweepMatSubjects, rcaSettings.binLevels{condNum});
-
-            threshVal(f,condNum) = tThr;
-            threshErr(f,condNum) = tThrStdErr;
-            slopeVal(f,condNum) = tSlp;
-            slopeErr(f,condNum) = tSlpStdErr;
-            fitBinRange(f,condNum,:) = [tLSB,tRSB];
-            if isnan(tThr)
-                fprintf('No threshold could be fitted for CondNum = %d (%s).\n',condNum,rcaSettings.freqLabels{f});
-            else
-                % save line info to plot after everything else so it's "on top"
-                fprintf('Thresh = %1.2f, Slope = %1.2f, Range=[%d,%d] for CondNum = %d (%s).\n',threshVal(f,condNum),slopeVal(f,condNum),fitBinRange(f,condNum,:),condNum,rcaSettings.freqLabels{f});
-                threshFitted(f,condNum) = 1;
-                saveXX{f,condNum} = tXX;
-                saveY{f,condNum} = tYFitPos;
-            end
-        end
-        
+    if ~isempty(errorType)
+        lb = ampVals(condNum,:,f)' - avgRcaData.ampErrBins(:,f,rc,condNum,1);
+        ub = avgRcaData.ampErrBins(:,f,rc,condNum,2) - ampVals(condNum,:,f)';
+        errorbar(binVals,ampVals(condNum,:,f),lb,ub,'Color',plotSettings.conditionColors(condNum,:),'LineWidth',1.5);
     end
     
-    if plotThreshold && any(threshFitted(f,:)>0)
-        for condNum = 1:nCond
-            binVals = rcaSettings.binLevels{condNum};
-            if threshFitted(f,condNum)                
-%                 % add shaded error region on threshold values:
-%                 h = fill([threshVal(f,condNum)-threshErr(f,condNum) threshVal(f,condNum)+threshErr(f,condNum) threshVal(f,condNum)+threshErr(f,condNum) threshVal(f,condNum)-threshErr(f,condNum)],...
-%                     [min(ylim) min(ylim) max(ylim) max(ylim)],'k');
-%                 set(h,'LineStyle','none','FaceAlpha',0.2,'FaceColor',plotSettings.conditionColors(condNum,:));
-                
-                yExtremes = [min(ylim) max(ylim)];
-                plot(repmat(threshVal(f,condNum)-threshErr(f,condNum),[1 2]),...
-                    yExtremes,'k--','Color',plotSettings.conditionColors(condNum,:))
-                plot(repmat(threshVal(f,condNum)+threshErr(f,condNum),[1 2]),...
-                    yExtremes,'k--','Color',plotSettings.conditionColors(condNum,:))
-                
-                % plot the linear fits & threshold values:
-                if isLogSpaced(binVals)                    
-                    set(gca,'XScale','log');
-                    semilogx(saveXX{f,condNum},saveY{f,condNum},'k-','LineWidth',3);
-                    semilogx(threshVal(f,condNum),0,'kd','MarkerSize',18,...
-                        'MarkerFaceColor',plotSettings.conditionColors(condNum,:),'LineWidth',3);
-                else
-                    plot(saveXX{f,condNum},saveY{f,condNum},'k-','LineWidth',3);
-                    plot(threshVal(f,condNum),0,'kd','MarkerSize',18,...
-                        'MarkerFaceColor',plotSettings.conditionColors(condNum,:),'LineWidth',3);
-                end
-                text((threshVal(f,condNum)-min(xlim))/2+min(xlim),0.7*max(ylim),sprintf('thresh (slope): %2.3f+/-%2.3f (%2.3f+/-%2.3f)',threshVal(f,condNum),threshErr(f,condNum),slopeVal(f,condNum),slopeErr(f,condNum)),'Color',plotSettings.conditionColors(condNum,:),'FontSize',12);
-                ylim(yExtremes);
-                %text(.9*threshVal(f,condNum),.8*max(ylim),sprintf('%2.2f',threshVal(f,condNum)),'Color',plotSettings.conditionColors(condNum,:));
-            end
+    if plotThreshold
+        clear sweepMatSubjects;
+        sweepMatSubjects = constructSweepMatSubjectsRCA(mainRcaData,rcaSettings,...
+            mainNoiseData.lowerSideBand,mainNoiseData.higherSideBand,rc,condNum,f);
+        
+        [tThr,tThrStdErr,tSlp,tSlpStdErr,tLSB,tRSB,~,tYFitPos,tXX] = getThreshScoringOutput(sweepMatSubjects, rcaSettings.binLevels{condNum});
+        
+        threshVal(f,condNum) = tThr;
+        threshErr(f,condNum) = tThrStdErr;
+        slopeVal(f,condNum) = tSlp;
+        slopeErr(f,condNum) = tSlpStdErr;
+        fitBinRange(f,condNum,:) = [tLSB,tRSB];
+        if isnan(tThr)
+            fprintf('No threshold could be fitted for CondNum = %d (%s).\n',condNum,rcaSettings.freqLabels{f});
+        else
+            % save line info to plot after everything else so it's "on top"
+            fprintf('Thresh = %1.2f, Slope = %1.2f, Range=[%d,%d] for CondNum = %d (%s).\n',threshVal(f,condNum),slopeVal(f,condNum),fitBinRange(f,condNum,:),condNum,rcaSettings.freqLabels{f});
+            threshFitted(f,condNum) = 1;
+            saveXX{f,condNum} = tXX;
+            saveY{f,condNum} = tYFitPos;
         end
     end
     
-    set(gca,'XTick',plotSettings.xTick);
-    xlim([binVals(1)-(binVals(2)-binVals(1)) binVals(end)+(binVals(end)-binVals(end-1))])
-    %set(gca,'XTickLabel',round(rcaSettings.binLevels*10)./10);
-    if ~isempty(plotSettings.ymax)
-        ylim([0 plotSettings.ymax]);
-    end
-    figNums = [figNums,gcf];
-    text(0.8*max(xlim),0.8*max(ylim),rcaSettings.freqLabels{f},'FontSize',20);
-        
 end
 
+yoffset = [0.75 0.85];
 if plotThreshold && any(threshFitted(f,:)>0)
+    for condNum = 1:nCond
+        binVals = rcaSettings.binLevels{condNum};
+        if threshFitted(f,condNum)
+            % add shaded error region on threshold values:
+%             h = fill([threshVal(f,condNum)-threshErr(f,condNum) threshVal(f,condNum)+threshErr(f,condNum) threshVal(f,condNum)+threshErr(f,condNum) threshVal(f,condNum)-threshErr(f,condNum)],...
+%                 [min(ylim) min(ylim) max(ylim) max(ylim)],'k');
+%             set(h,'LineStyle','none','FaceAlpha',0.2,'FaceColor',plotSettings.conditionColors(condNum,:));
+            
+            yExtremes = [min(ylim) max(ylim)];
+            plot(repmat(threshVal(f,condNum)-threshErr(f,condNum),[1 2]),...
+                yExtremes,'k--','Color',plotSettings.conditionColors(condNum,:))
+            plot(repmat(threshVal(f,condNum)+threshErr(f,condNum),[1 2]),...
+                yExtremes,'k--','Color',plotSettings.conditionColors(condNum,:))
+            
+            % plot the linear fits & threshold values:
+            if isLogSpaced(binVals)
+                set(gca,'XScale','log');
+                semilogx(saveXX{f,condNum},saveY{f,condNum},'k-','LineWidth',3);
+                semilogx(threshVal(f,condNum),0,'kd','MarkerSize',18,...
+                    'MarkerFaceColor',plotSettings.conditionColors(condNum,:),'LineWidth',3);
+            else
+                plot(saveXX{f,condNum},saveY{f,condNum},'k-','LineWidth',3);
+                plot(threshVal(f,condNum),0,'kd','MarkerSize',18,...
+                    'MarkerFaceColor',plotSettings.conditionColors(condNum,:),'LineWidth',3);
+            end
+            text(binVals(1),yoffset(condNum)*max(yExtremes),sprintf('thresh (slope): %2.3f+/-%2.3f (%2.3f+/-%2.3f)',threshVal(f,condNum),threshErr(f,condNum),slopeVal(f,condNum),slopeErr(f,condNum)),'Color',plotSettings.conditionColors(condNum,:),'FontSize',12);
+            ylim(yExtremes);
+            %text(.9*threshVal(f,condNum),.8*max(ylim),sprintf('%2.2f',threshVal(f,condNum)),'Color',plotSettings.conditionColors(condNum,:));
+        end
+    end
+end
+
+%set(gca,'XTick',plotSettings.xTick);
+xlim([binVals(1)-(binVals(2)-binVals(1)) binVals(end)+(binVals(end)-binVals(end-1))])
+%set(gca,'XTickLabel',round(rcaSettings.binLevels*10)./10);
+if isfield(plotSettings,'ymax')
+    ylim([0 plotSettings.ymax]);
+end
+
+% if plotThreshold && any(threshFitted(f,:)>0)
+%     set(gca,'XTick',[min(xlim) binVals([1 floor(length(binVals)/2) end])])
+% else
+    set(gca,'XTick',binVals([1 floor(length(binVals)/2) end]))
+% end
+
+set(gca,'ticklength',1.75*get(gca,'ticklength'))
+
+figNums = [figNums,gcf];
+
+%text(0.8*max(xlim),0.8*max(ylim),rcaSettings.freqLabels{f},'FontSize',20);
+
+if plotThreshold && any(threshFitted(f,:)>0)
+    box on;
     threshInfo.threshFitted = threshFitted;
     threshInfo.xx = saveXX;
     threshInfo.YY = saveY;

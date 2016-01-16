@@ -88,7 +88,7 @@ plotSettings.titleToUse = [];
 plotSettings.xlabel = 'Relative Disparity (arc min)';
 plotSettings.xTick = rcaSettings.binLevels{1}([1 5 10]);
 plotSettings.ymax = [];
-plotRcData(rcaData,noiseData,rcaSettings,plotSettings,1,1)
+plotRcData(rcaData,noiseData,rcaSettings,plotSettings,1,1,1)
 
 %% Print figures to a file
 allFigNumbers = [snrFigNums,figNum]; % should include all the returned figure numbers from plotting calls that were already run
